@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-app
+spec:
+  replicas: 1  # Number of instances of your app
+  selector:
+    matchLabels:
+      app: node-app
+  template:
+    metadata:
+      labels:
+        app: node-app
+    spec:
+      containers:
+        - name: node-app
+          image: 571600863856.dkr.ecr.ap-south-1.amazonaws.com/node-app:1.0.1  # Replace with your custom image if you built one
+          ports:
+            - containerPort: 3000  # Port your app listens on
+          env:
+            - name: NODE_ENV
+              value: "dev"
