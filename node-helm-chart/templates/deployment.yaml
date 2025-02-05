@@ -1,22 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-app
+  name: {{ .Release.Name }}-frontend-app
+  namespace: {{ .Values.namespace }}
 spec:
-  replicas: 1  # Number of instances of your app
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: node-app
+      app: {{ .Values.container.name }}
   template:
     metadata:
       labels:
-        app: node-app
+        app: {{ .Values.container.name }}
     spec:
       containers:
-        - name: node-app
-          image: 571600863856.dkr.ecr.ap-south-1.amazonaws.com/node-app:1.0.1  # Replace with your custom image if you built one
+        - name: {{ .Values.container.name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
-            - containerPort: 3000  # Port your app listens on
+            - containerPort: {{ .Values.container.port }}
           env:
             - name: NODE_ENV
-              value: "dev"
+              value: "{{ .Values.env.NODE_ENV }}"
