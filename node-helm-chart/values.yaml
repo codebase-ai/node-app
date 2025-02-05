@@ -36,7 +36,13 @@ autoscaling:
   targetCPUUtilizationPercentage: 80
   # targetMemoryUtilizationPercentage: 80
 
-
+resources:
+  limits:
+    cpu: "100m"
+    memory: "200Mi"
+  requests:
+    cpu: "50m"
+    memory: "100Mi"
 
 ingress:
   enabled: false
