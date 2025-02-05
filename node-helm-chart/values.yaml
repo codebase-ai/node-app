@@ -16,6 +16,9 @@ service:
   port: 80
   targetPort: 3000
 
+
+namespace: frontend
+ 
 env:
   NODE_ENV: "dev"
 
