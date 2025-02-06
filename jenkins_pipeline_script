@@ -1,0 +1,78 @@
+pipeline {
+    agent any
+    environment {
+        AWS_REGION = 'ap-south-1'  // Change to your AWS region
+        ECR_REPO = 'node-app'
+        EKS_CLUSTER = 'eks-cluster'
+        IMAGE_TAG = "${BUILD_NUMBER}"  // Unique tag based on Jenkins build number
+        GIT_REPO = 'https://github.com/shubhranshu007/node-app.git'
+        GIT_BRANCH = 'node'
+        AWS_ACCOUNT_ID = '571600863856'  // Replace with your AWS account ID
+        ECR_URL = "571600863856.dkr.ecr.${AWS_REGION}.amazonaws.com"
+        NAMESPACE = 'frontend'
+        RELEASE_NAME = 'frondent-app'
+    }
+    stages {
+        stage('Checkout Code') {
+            steps {
+                script {
+                    git branch: "${GIT_BRANCH}", credentialsId: 'git_cred', url: "${GIT_REPO}"
+                }
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                script {
+                    sh '''
+                    echo "Building Docker image..."
+                    sudo docker build -t $ECR_REPO:$IMAGE_TAG .
+                    '''
+                }
+            }
+        }
+        
+        stage('Authenticate with ECR') {
+            steps {
+                script {
+                    withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws_cred', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        sh '''
+                        echo "Logging in to AWS ECR..."
+                        aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_URL
+                        echo "Tagging and pushing Docker image..."
+                        sudo docker tag $ECR_REPO:$IMAGE_TAG $ECR_URL/$ECR_REPO:$IMAGE_TAG
+                        sudo docker push $ECR_URL/$ECR_REPO:$IMAGE_TAG
+                        
+                       '''
+                    }
+                }
+            }
+        }
+        
+        stage('deploy to EKS') {
+            steps {
+                script {
+                    withCredentials([aws(accessKeyVariable: 'AWS_ACCESS_KEY_ID', credentialsId: 'aws_cred', secretKeyVariable: 'AWS_SECRET_ACCESS_KEY')]) {
+                        sh '''
+                        echo "Updating kubeconfig for EKS..."
+                        aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+                        
+                        echo "Checking if Helm release exists..."
+                        if helm list -n $NAMESPACE | grep -q $RELEASE_NAME; then
+                            echo "Helm release found, upgrading..."
+                            helm upgrade $RELEASE_NAME node-helm-chart/ --set image.repository=$ECR_URL/$ECR_REPO --set image.tag=$IMAGE_TAG --namespace $NAMESPACE
+                        else
+                            echo "Helm release does not exist, installing..."
+                            helm install $RELEASE_NAME node-helm-chart/ --set image.repository=$ECR_URL/$ECR_REPO --set image.tag=$IMAGE_TAG --namespace $NAMESPACE
+                        fi
+                        
+                        kubectl get pods -n $NAMESPACE
+                        kubectl get svc -n $NAMESPACE
+                        '''
+                        
+                    }
+                }
+            }
+        }
+    }
+}
