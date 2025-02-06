@@ -1,5 +1,5 @@
 # Application Configuration
-replicaCount: 1
+replicaCount: 2
 
 image:
   repository: 571600863856.dkr.ecr.ap-south-1.amazonaws.com/node-app
