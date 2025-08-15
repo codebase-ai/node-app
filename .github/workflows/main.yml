@@ -17,6 +17,9 @@ jobs:
       - name: Get PR Diff
         run: git diff origin/node...${{ github.head_ref }} > changes.diff
 
+      - name: Show diff file content
+        run: cat changes.diff
+
       - name: AI Code Review with OpenAI
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
