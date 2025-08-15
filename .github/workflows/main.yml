@@ -33,3 +33,4 @@ jobs:
           curl -X POST "https://genai-api.mycompany.com/review" \
           -H "Content-Type: text/plain" \
           --data-binary @deploy.log
+          
