@@ -13,9 +13,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: ${{ github.head_ref }}
+
+      - name: Fetch base branch
+        run: git fetch origin ${{ github.base_ref }}
 
       - name: Get PR Diff
-        run: git diff origin/node...HEAD > changes.diff
+        run: git diff origin/${{ github.base_ref }}...HEAD > changes.diff
 
       - name: AI Code Review with OpenAI
         env:
@@ -60,9 +64,33 @@ jobs:
           echo "AI Dockerfile Feedback:"
           echo "$REVIEW"
 
-      - name: Push Image to Registry
+      - name: Push Image to Docker Hub
         run: |
           echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
           docker tag myapp:${{ github.sha }} ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
           docker push ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }}
-          
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y wget
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.54.1_Linux-64bit.deb
+          sudo dpkg -i trivy_0.54.1_Linux-64bit.deb
+
+      - name: Scan Docker Image
+        run: trivy image ${{ secrets.DOCKER_USERNAME }}/myapp:${{ github.sha }} > scan.txt
+
+      - name: AI Analyze Scan Results
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          curl -s -X POST "https://api.openai.com/v1/chat/completions" \
+            -H "Authorization: Bearer $OPENAI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "model": "gpt-4o-mini",
+              "messages": [
+                {"role": "system", "content": "Analyze this vulnerability scan and list the most critical issues with fixes."},
+                {"role": "user", "content": "'"$(cat scan.txt)"'"}
+              ]
+            }' | jq -r '.choices[0].message.content'
