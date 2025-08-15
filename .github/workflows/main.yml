@@ -23,3 +23,13 @@ jobs:
 
       - name: Push Docker image
         run: docker push shubhranshu19/my-node-app:latest
+
+      - name: Deploy container
+        run: |
+          docker run -d -p 3000:3000 shubhranshu19/my-node-app:latest > deploy.log 2>&1
+
+      - name: Send logs to GenAI for review
+        run: |
+          curl -X POST "https://genai-api.mycompany.com/review" \
+          -H "Content-Type: text/plain" \
+          --data-binary @deploy.log
