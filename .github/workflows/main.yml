@@ -56,18 +56,3 @@ jobs:
               reviewers: ['reviewer1','reviewer2'] // Replace with GitHub usernames
             });
 
-  deploy:
-    needs: [build]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Deploy Docker image
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
-          echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
-          docker tag node-app:latest "${DOCKER_USERNAME}/node-app:latest"
-          docker push "${DOCKER_USERNAME}/node-app:latest"
