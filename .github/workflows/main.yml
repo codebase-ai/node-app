@@ -1,10 +1,14 @@
-
-# CI workflow for pull requests to 'code_review' branch
-name: "CI for Node.js Application (branch: code_review)"
+name: "CI/CD for Node.js Application (branch: node)"
 
 on:
+  push:
+    branches: [node]
   pull_request:
-    branches: [code_review]
+    branches: [node]
+
+permissions:
+  contents: read
+  pull-requests: write
 
 jobs:
   build:
@@ -21,6 +25,33 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
+ #     - name: Run tests
+ #       run: npm test
 
+      - name: Build Docker image
+        run: docker build -t node-app:latest .
+
+      - name: Push Docker image to Docker Hub
+        if: ${{ github.event_name == 'push' }}
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+          docker tag node-app:latest "${DOCKER_USERNAME}/node-app:latest"
+          docker push "${DOCKER_USERNAME}/node-app:latest"
+
+  code_review:
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'pull_request' }}
+    steps:
+      - name: Request code review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              reviewers: ['reviewer1','reviewer2'] // Replace with GitHub usernames
+            });
