@@ -55,4 +55,3 @@ jobs:
               pull_number: context.payload.pull_request.number,
               reviewers: ['reviewer1','reviewer2'] // Replace with GitHub usernames
             });
-
