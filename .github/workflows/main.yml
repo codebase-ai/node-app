@@ -3,10 +3,10 @@ name: Build and Test Node.js Application
 on:
   push:
     branches:
-      - main
+      - node
   pull_request:
     branches:
-      - main
+      - code-review
 
 jobs:
   build-and-test:
