@@ -8,7 +8,7 @@ on:
 
 jobs:
   ci:
-    uses: codebase-ai/ci_cd_ai_generator/.github/workflows/main.yml@main
+    uses: codebase-ai/ci_cd_ai_generator/.github/workflows/main.yml@node
     with:
       node-version: '20.x'
       run-tests: true
