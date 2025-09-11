@@ -59,3 +59,18 @@ jobs:
           echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
           docker tag node-app:latest "${DOCKER_USERNAME}/node-app:latest"
           docker push "${DOCKER_USERNAME}/node-app:latest"
+    
+    code_review:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.request_code_review == true }}
+    steps:
+      - name: Request code review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              reviewers: ['reviewer1', 'reviewer2']
+            });
