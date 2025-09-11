@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Call Reusable CI/CD Workflow
 
 on:
   push:
@@ -7,11 +7,12 @@ on:
     branches: [node]
 
 jobs:
-  ci:
-    uses: codebase-ai/ci_cd_ai_generator/.github/workflows/main.yml@node
+  run-reusable-workflow:
+    uses: codebase-ai/ci_cd_ai_generator/.github/workflows/main.yml@main
     with:
-      node-version: '20.x'
-      run-tests: true
-      run-lint: true
-      run-build: true
-    secrets: inherit
+      run_docker_build: true
+      push_docker: true
+      request_code_review: true
+    secrets:
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
