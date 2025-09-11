@@ -1,0 +1,76 @@
+name: "Reusable CI/CD for Node.js App"
+
+on:
+  workflow_call:
+    inputs:
+      run_docker_build:
+        description: "Build Docker image"
+        required: false
+        type: boolean
+        default: true
+
+      push_docker:
+        description: "Push Docker image to Docker Hub"
+        required: false
+        type: boolean
+        default: true
+
+      request_code_review:
+        description: "Request code review on PR"
+        required: false
+        type: boolean
+        default: true
+
+    secrets:
+      DOCKER_USERNAME:
+        required: false
+      DOCKER_PASSWORD:
+        required: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Docker image
+        if: ${{ inputs.run_docker_build == true }}
+        run: docker build -t node-app:latest .
+
+      - name: Push Docker image to Docker Hub
+        if: ${{ inputs.push_docker == true && inputs.run_docker_build == true }}
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
+          docker tag node-app:latest "${DOCKER_USERNAME}/node-app:latest"
+          docker push "${DOCKER_USERNAME}/node-app:latest"
+
+  code_review:
+    runs-on: ubuntu-latest
+    if: ${{ inputs.request_code_review == true }}
+    steps:
+      - name: Request code review
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.pulls.requestReviewers({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+              reviewers: ['reviewer1', 'reviewer2']
+            });
