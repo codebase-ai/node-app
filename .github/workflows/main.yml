@@ -1,13 +1,5 @@
-name: Call Reusable CI/CD Workflow
-
-on:
-  push:
-    branches: [node]
-  pull_request:
-    branches: [node]
-
 jobs:
-  run-reusable-workflow:
+  call-reusable:
     uses: codebase-ai/ci_cd_ai_generator/.github/workflows/main.yml@main
     with:
       run_docker_build: true
@@ -16,3 +8,4 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+      
