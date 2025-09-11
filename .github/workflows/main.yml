@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ code_review ]
 
+permissions:  # 👈 Grant required permissions
+  contents: read
+  pull-requests: write
+
 jobs:
   use-reusable-workflow:
     uses: codebase-ai/node-app/.github/workflows/reusable_workflow.yml@node
