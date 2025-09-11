@@ -59,4 +59,3 @@ jobs:
           echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin
           docker tag node-app:latest "${DOCKER_USERNAME}/node-app:latest"
           docker push "${DOCKER_USERNAME}/node-app:latest"
-
