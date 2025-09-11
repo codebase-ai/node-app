@@ -1,13 +1,14 @@
-# .github/workflows/caller.yml
-name: Call Reusable Workflow
+name: Call Reusable CI/CD Workflow
 
 on:
   push:
-    branches: [ node ]
+    branches: [node]
+  pull_request:
+    branches: [node]
 
 jobs:
   use-reusable:
-    uses: codebase-ai/ci_cd_ai_generator/.github/workflows/main.yml@main
+    uses: ./.github/workflows/main.yml
     with:
       run_docker_build: true
       push_docker: true
