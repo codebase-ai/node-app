@@ -12,7 +12,7 @@ permissions:  # 👈 Grant required permissions
 
 jobs:
   use-reusable-workflow:
-    uses: codebase-ai/ci_cd_ai_generator/.github/workflows/reusable_workflow.yml@node
+    uses: codebase-ai/ci_cd_ai_generator/.github/workflows/reusable_workflow.yml@main
     with:
       run_docker_build: true
       push_docker: true
