@@ -1,5 +1,12 @@
+# .github/workflows/caller.yml
+name: Call Reusable Workflow
+
+on:
+  push:
+    branches: [ node ]
+
 jobs:
-  call-reusable:
+  use-reusable:
     uses: codebase-ai/ci_cd_ai_generator/.github/workflows/main.yml@main
     with:
       run_docker_build: true
@@ -8,4 +15,4 @@ jobs:
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-      
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
